@@ -1,0 +1,697 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Java 8,函数式编程,stream,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="流是什么流是Java 8 新出现的成员，它允许你以声明性方式处理数据集合(通过查询语句来表达，而不是临时编写一个实现，或者说是函数式风格处理流中的元素)，并且可以并行的处理。例如，假设有个菜单列表 (menus)，它包含诺干个菜品 (dish)，每个菜品都包含名字 (name)，卡路里量 (calories)，类型(type)，现在需要查询出只包含300以下卡路里且按照卡路里排序的所有菜品名字时，">
+<meta name="keywords" content="Java 8,函数式编程,stream">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 8 特性：Stream（一）">
+<meta property="og:url" content="http://sevenvoid.com/2018-01-06-java-stream-1/index.html">
+<meta property="og:site_name" content="Sevenvoid&#39;s Blog">
+<meta property="og:description" content="流是什么流是Java 8 新出现的成员，它允许你以声明性方式处理数据集合(通过查询语句来表达，而不是临时编写一个实现，或者说是函数式风格处理流中的元素)，并且可以并行的处理。例如，假设有个菜单列表 (menus)，它包含诺干个菜品 (dish)，每个菜品都包含名字 (name)，卡路里量 (calories)，类型(type)，现在需要查询出只包含300以下卡路里且按照卡路里排序的所有菜品名字时，">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-15T09:44:33.743Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java 8 特性：Stream（一）">
+<meta name="twitter:description" content="流是什么流是Java 8 新出现的成员，它允许你以声明性方式处理数据集合(通过查询语句来表达，而不是临时编写一个实现，或者说是函数式风格处理流中的元素)，并且可以并行的处理。例如，假设有个菜单列表 (menus)，它包含诺干个菜品 (dish)，每个菜品都包含名字 (name)，卡路里量 (calories)，类型(type)，现在需要查询出只包含300以下卡路里且按照卡路里排序的所有菜品名字时，">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://sevenvoid.com/2018-01-06-java-stream-1/">
+
+  <title> Java 8 特性：Stream（一） | Sevenvoid's Blog </title>
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Sevenvoid's Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br>
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Java 8 特性：Stream（一）
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-01-06T00:00:00+08:00" content="2018-01-06">
+              2018-01-06
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope="" itemtype="https://schema.org/Thing">
+                  <a href="/categories/函数式编程/" itemprop="url" rel="index">
+                    <span itemprop="name">函数式编程</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018-01-06-java-stream-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018-01-06-java-stream-1/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="流是什么"><a href="#流是什么" class="headerlink" title="流是什么"></a>流是什么</h3><p>流是Java 8 新出现的成员，它允许你以声明性方式处理数据集合(通过查询语句来表达，而不是临时编写一个实现，或者说是函数式风格处理流中的元素)，并且可以并行的处理。例如，假设有个菜单列表 (menus)，它包含诺干个菜品 (dish)，每个菜品都包含名字 (name)，卡路里量 (calories)，类型(type)，现在需要查询出只包含300以下卡路里且按照卡路里排序的所有菜品名字时，用Stream的实现方式如下所示：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; dishNames = menus.stream()</span><br><span class="line">		.filter(()-&gt; dish.getCalories() &lt; <span class="number">300</span>)</span><br><span class="line">		.sorted(comparing(Dish::getCalories))</span><br><span class="line">		.map(Dish::getName)</span><br><span class="line">		.collect(Collectors.toList())</span><br></pre></td></tr></table></figure></p>
+<p>换句话说，流是“从支持数据处理操作的源生成的元素序列”：</p>
+<ol>
+<li>元素序列——就像集合一样，流也提供了一个接口，可以访问特定元素类型的一组有序 值。因为集合是数据结构，所以它的主要目的是以特定的时间/空间复杂度存储和访问元素(如ArrayList 与 LinkedList)。但流的目的在于表达计算。</li>
+<li>源——流会使用一个提供数据的源，如集合、数组或输入/输出资源。 请注意，从有序集合生成流时会保留原有的顺序。</li>
+<li>数据处理操作——流的数据处理功能支持类似于数据库的操作，以及函数式编程语言中的常用操作，如filter、map、reduce、find、match、sort等。流操作可以顺序执行，也可并行执行。</li>
+</ol>
+<a id="more"></a>
+<p>此外，流操作有两个重要的特点。</p>
+<ol start="3">
+<li>流水线——很多流操作本身会返回一个流，这样多个操作就可以链接起来，形成一个大的流水线。流水线的操作可以看作对数据源进行数据库式查询。</li>
+<li>内部迭代——与使用迭代器显式迭代的集合不同，流的迭代操作是在背后进行的。Streams库的内部迭代可以自动选择一种适合你硬件的数据表示和并行实现。</li>
+</ol>
+<h3 id="流与集合的区别"><a href="#流与集合的区别" class="headerlink" title="流与集合的区别"></a>流与集合的区别</h3><p>流与集合有如下几个区别：</p>
+<ol>
+<li>流不能存储：流不是数据结构不能用于存储元素，相反的，流能将元素传递到一个流水线形式的计算操作集合。</li>
+<li>流的操作是函数式风格：也就是流的处理是无副作用的，对一个流的操作会产生新的结果而不是修改原始的流，而且同一流也只能被消费一次。</li>
+<li>流的操作是懒处理：流的操作可以分为中间操作和终端操作，只有终端操作被执行时，中间操作才会开始执行。</li>
+<li>流可能是无界：集合有界，而流可能是无界的，流的短路操作如 limit、findFirst操作，可以在一个有限的时间内在一个无限的流上操作。</li>
+</ol>
+<h3 id="流的实现"><a href="#流的实现" class="headerlink" title="流的实现"></a>流的实现</h3><p>在Java的类库中，<a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html" target="_blank" rel="noopener">java.util.stream</a> 包包含了4中类型的流对象，Stream、IntStream、LongStream、DoubleStream分别代表object对象流，原始数据类型的 int, long, double流。常见的可以通过如下方式获得流对象：</p>
+<ol>
+<li>通过Collection接口的stream() 和 parallelStream() 方法</li>
+<li>通过Arrays的stream(Object [ ])方法</li>
+<li>通过流对象的静态方法 Stream.of(Object [ ])、IntStream.range(int, int)、Stream.iterate(Object, UnaryOperator)、Stream.generate(Supplier<t> s)</t></li>
+<li>或者提供一个Spliterator 的实现，自己构造出一个流</li>
+</ol>
+<p>Stream接口实现了AutoCloseable接口，但是几乎所有的流在使用后都不需要手动的close()，只有I/O Channel相关的流需要显示的Closing，也可以放在 <em>try-with-resources</em> 语句中，流被关闭时，注册在onClose(Runnable closeHandler) closeHandler将会被顺序依次调用执行。 </p>
+<h4 id="流的操作"><a href="#流的操作" class="headerlink" title="流的操作"></a>流的操作</h4><p><a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html" target="_blank" rel="noopener">java.util.strem.Stream</a> 类中提供了大量关于流的操作，主要如下所示：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">**Intermediate operations** :</span><br><span class="line"><span class="function">Stream&lt;T&gt; <span class="title">filter</span><span class="params">(Predicate&lt;? <span class="keyword">super</span> T&gt; predicate)</span></span></span><br><span class="line"><span class="function">&lt;R&gt; Stream&lt;R&gt; <span class="title">map</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends R&gt; mapper)</span></span></span><br><span class="line"><span class="function">&lt;R&gt; Stream&lt;R&gt; <span class="title">flatMap</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends Stream&lt;? extends R&gt;&gt; mapper)</span></span></span><br><span class="line"><span class="function">Stream&lt;T&gt; <span class="title">peek</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span></span><br><span class="line"><span class="function">S <span class="title">sequential</span><span class="params">()</span></span></span><br><span class="line"><span class="function">S <span class="title">parallel</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">**Stateful intermediate operations** :</span><br><span class="line"><span class="function">Stream&lt;T&gt; <span class="title">distinct</span><span class="params">()</span></span></span><br><span class="line"><span class="function">Stream&lt;T&gt; <span class="title">skip</span><span class="params">(<span class="keyword">long</span> n)</span></span></span><br><span class="line"><span class="function">Stream&lt;T&gt; <span class="title">sorted</span><span class="params">()</span></span></span><br><span class="line"><span class="function">Stream&lt;T&gt; <span class="title">sorted</span><span class="params">(Comparator&lt;? <span class="keyword">super</span> T&gt; comparator)</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">**Short-circuiting Stateful intermediate operations** :</span><br><span class="line"><span class="function">Stream&lt;T&gt; <span class="title">limit</span><span class="params">(<span class="keyword">long</span> maxSize)</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">**Terminal operations** : </span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">forEach</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">forEachOrdered</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span></span><br><span class="line"><span class="function">Object[] <span class="title">toArray</span><span class="params">()</span></span></span><br><span class="line"><span class="function">T <span class="title">reduce</span><span class="params">(T identity, BinaryOperator&lt;T&gt; accumulator)</span></span></span><br><span class="line"><span class="function">Optional&lt;T&gt; <span class="title">reduce</span><span class="params">(BinaryOperator&lt;T&gt; accumulator)</span></span></span><br><span class="line"><span class="function">&lt;U&gt; U <span class="title">reduce</span><span class="params">(U identity,BiFunction&lt;U, ? <span class="keyword">super</span> T, U&gt; accumulator,BinaryOperator&lt;U&gt; combiner)</span></span></span><br><span class="line"><span class="function">&lt;R&gt; R <span class="title">collect</span><span class="params">(Supplier&lt;R&gt; supplier,BiConsumer&lt;R, ? <span class="keyword">super</span> T&gt; accumulator,BiConsumer&lt;R, R&gt; combiner)</span></span></span><br><span class="line"><span class="function">&lt;R, A&gt; R <span class="title">collect</span><span class="params">(Collector&lt;? <span class="keyword">super</span> T, A, R&gt; collector)</span></span></span><br><span class="line"><span class="function">Optional&lt;T&gt; <span class="title">min</span><span class="params">(Comparator&lt;? <span class="keyword">super</span> T&gt; comparator)</span></span></span><br><span class="line"><span class="function">Optional&lt;T&gt; <span class="title">max</span><span class="params">(Comparator&lt;? <span class="keyword">super</span> T&gt; comparator)</span></span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">count</span><span class="params">()</span></span></span><br><span class="line"><span class="function">Spliterator&lt;T&gt; <span class="title">spliterator</span><span class="params">()</span></span></span><br><span class="line"><span class="function">Iterator&lt;T&gt; <span class="title">iterator</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">**Short-circuiting terminal operations**:</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">allMatch</span><span class="params">(Predicate&lt;? <span class="keyword">super</span> T&gt; predicate)</span></span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">anyMath</span><span class="params">(Predicate&lt;? <span class="keyword">super</span> T&gt; predicate)</span></span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">noneMatch</span><span class="params">(Predicate&lt;? <span class="keyword">super</span> T&gt; predicate)</span></span></span><br><span class="line"><span class="function">Optional&lt;T&gt; <span class="title">findFirst</span><span class="params">()</span></span></span><br><span class="line"><span class="function">Optional&lt;T&gt; <span class="title">findAny</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>流的操作主要分为两种类型的操作：中间操作和终端操作。中间操作会返回一个新的流；终端操作返回一个非Stream类型的值或者是消费流中的元素（副作用），只有终端操作被执行时，中间操作才开始执行。两者又包括部分短路操作。</p>
+<p>中间操作又分为无状态的和有状态的操作，无状态的操作流中的每个元素将会单独处理，有状态的操作操作一个新元素时，需要关注之前元素的状态。</p>
+<h4 id="参数化行为的特性"><a href="#参数化行为的特性" class="headerlink" title="参数化行为的特性"></a>参数化行为的特性</h4><p>大多数的操作都接收行为参数化的参数，也即函数式接口，或Lambda表达式，或方法引用。为了保持操作有正确地行为，或者能并行执行的特性，参数化行为的行为参数需要有如下特性：</p>
+<ol>
+<li><p>无干涉 (Non-interference) : 也就是说行为参数在执行时不能修改原始流中的元素，除非流本身来自于支持并发修改的数据结构，比如ConcurrentHashMap等。如果是非并发数据结构产生的流的修改操作（非线程安全的）可能会造成异常、错误、或者不可预知的结果。但是在终端操作之前，对流的原始数据结果的修改是支持的，不会出现并发修改异常，并会反映到流。</p>
+</li>
+<li><p>大多数无状态 (Stateless behaviors)： 行为参数在处理某个元素时，不应该依赖于之前的元素。有状态的行为（sort、distinct 等），如果不同步状态可能会造成数据并发修改的错误，如果同步状态，又可能出现竞态，或者降低并行执行的效率。</p>
+</li>
+<li><p>副作用 (Side-effects)：尽量不要产生副作用，但大部分是需要副作用的，如map函数。</p>
+</li>
+<li>结合性 (Associativity):  为了流水线可以并行执行，需要满足操作的可结合性，即：a op b op c op d == (a op b) op ( c op d)。</li>
+</ol>
+<p>此外，流中元素的结果顺序，取决于数据源，以及中间操作，大多数情况，如果是有序的数据结构流则元素处理是有序的，产生有序的结果，无序的，就会产生无序的结果，并行执行时，有时无序的结果效率更高，可以是由BaseStream.unordered()方法使得元素无序。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="">Java 8 in action</a><br><a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html" target="_blank" rel="noopener">Java doc</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java-8/" rel="tag">#Java 8</a>
+          
+            <a href="/tags/函数式编程/" rel="tag">#函数式编程</a>
+          
+            <a href="/tags/stream/" rel="tag">#stream</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017-06-27-paxos/" rel="next" title="深入理解Paxos算法协议">
+                <i class="fa fa-chevron-left"></i> 深入理解Paxos算法协议
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018-01-11-java-stream-2/" rel="prev" title="Java 8 特性：Stream（二）">
+                Java 8 特性：Stream（二） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Sevenvoid">
+          <p class="site-author-name" itemprop="name">Sevenvoid</p>
+          <p class="site-description motion-element" itemprop="description">一只迷茫的猫</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#流是什么"><span class="nav-number">1.</span> <span class="nav-text">流是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流与集合的区别"><span class="nav-number">2.</span> <span class="nav-text">流与集合的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流的实现"><span class="nav-number">3.</span> <span class="nav-text">流的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#流的操作"><span class="nav-number">3.1.</span> <span class="nav-text">流的操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参数化行为的特性"><span class="nav-number">3.2.</span> <span class="nav-text">参数化行为的特性</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sevenvoid</span>
+</div>
+
+<div class="powered-by">
+  版权归 Sevenvoid 所有
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'sevenvoid';
+      var disqus_identifier = '2018-01-06-java-stream-1/';
+      var disqus_title = "Java 8 特性：Stream（一）";
+      var disqus_url = 'http://sevenvoid.com/2018-01-06-java-stream-1/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

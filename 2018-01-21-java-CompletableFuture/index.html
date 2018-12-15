@@ -1,0 +1,687 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Java 8,函数式编程,stream,CompletableFuture,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="在之前的文章中，介绍了Java 8 的新特性之一流，这篇文章介绍另一个新的特性 CompletableFuture。 什么是 CompletableFutureCompletbaleFuture 主要用在 Java 的异步编程中，异步编程是指在一个独立的线程而非主线程中通过运行一个任务来执行非阻塞的代码，并告知主线程它的运行过程，完成或失败情况。通过这种方式，主线程就不需要阻塞或者等待这个任务的">
+<meta name="keywords" content="Java 8,函数式编程,stream,CompletableFuture">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 8 特性：CompletableFuture">
+<meta property="og:url" content="http://sevenvoid.com/2018-01-21-java-CompletableFuture/index.html">
+<meta property="og:site_name" content="Sevenvoid&#39;s Blog">
+<meta property="og:description" content="在之前的文章中，介绍了Java 8 的新特性之一流，这篇文章介绍另一个新的特性 CompletableFuture。 什么是 CompletableFutureCompletbaleFuture 主要用在 Java 的异步编程中，异步编程是指在一个独立的线程而非主线程中通过运行一个任务来执行非阻塞的代码，并告知主线程它的运行过程，完成或失败情况。通过这种方式，主线程就不需要阻塞或者等待这个任务的">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1516518138439.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1516522002025.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1516522561934.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1516524534228.png">
+<meta property="og:updated_time" content="2018-12-15T09:44:33.746Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java 8 特性：CompletableFuture">
+<meta name="twitter:description" content="在之前的文章中，介绍了Java 8 的新特性之一流，这篇文章介绍另一个新的特性 CompletableFuture。 什么是 CompletableFutureCompletbaleFuture 主要用在 Java 的异步编程中，异步编程是指在一个独立的线程而非主线程中通过运行一个任务来执行非阻塞的代码，并告知主线程它的运行过程，完成或失败情况。通过这种方式，主线程就不需要阻塞或者等待这个任务的">
+<meta name="twitter:image" content="http://sevenvoid.com/images/2018-01/1516518138439.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://sevenvoid.com/2018-01-21-java-CompletableFuture/">
+
+  <title> Java 8 特性：CompletableFuture | Sevenvoid's Blog </title>
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Sevenvoid's Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br>
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Java 8 特性：CompletableFuture
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-01-21T00:00:00+08:00" content="2018-01-21">
+              2018-01-21
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope="" itemtype="https://schema.org/Thing">
+                  <a href="/categories/函数式编程/" itemprop="url" rel="index">
+                    <span itemprop="name">函数式编程</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018-01-21-java-CompletableFuture/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018-01-21-java-CompletableFuture/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="/images/2018-01/1516518138439.png" alt=""></p>
+<p>在之前的文章中，介绍了Java 8 的新特性之一流，这篇文章介绍另一个新的特性 <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html" target="_blank" rel="noopener">CompletableFuture</a>。</p>
+<h3 id="什么是-CompletableFuture"><a href="#什么是-CompletableFuture" class="headerlink" title="什么是 CompletableFuture"></a>什么是 CompletableFuture</h3><p>CompletbaleFuture 主要用在 Java 的异步编程中，异步编程是指在一个独立的线程而非主线程中通过运行一个任务来执行非阻塞的代码，并告知主线程它的运行过程，完成或失败情况。通过这种方式，主线程就不需要阻塞或者等待这个任务的完成，它可以并行的执行其他的任务，从而提高程序的性能。</p>
+<p>CompletableFuture 接口是 <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html" target="_blank" rel="noopener">Future</a> 接口的扩展，Future 接口代表了一个异步执行任务产生的结果引用，可以通过 isDone() 方法来判断任务是否执行完成，通过get() 等方法来阻塞获取完成结果。但是 Future 还有一些局限性：<br><a id="more"></a> </p>
+<ol>
+<li>它不能手动完成：也就是说如果异步任务一直阻塞无法返回，则获取结果的线程也会一直阻塞。</li>
+<li>不能对未来的结果做进一步的处理而不会阻塞：Future 没有提供回调的能力，任务完成后不会得到通知，只有 get() 方法一直阻塞到获取到结果时，才能对结果做进一步处理。</li>
+<li>多个 Future 不能链接起来形成 Future Chains：通过 Future 无法创建一个异步处理的工作流水线。</li>
+<li>不能联合多个 Future 结果：不能实现等到多个 Future 都完成时，再执行某个动作。</li>
+<li>没有异常处理机制： Future 没有提供任何的异常处理机制。</li>
+</ol>
+<p>而使用 CompletableFuture 均可以实现以上的功能。CompletableFuture 同时实现了Future 和 <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html" target="_blank" rel="noopener">CompletionStage</a> 接口。CompletionStage 表示是一个异步计算的阶段，当另一个CompletionStage完成时，它可以被触发执行某个动作，或者计算一个值。一个CompletionStage 一旦完成它的计算就结束了，但可能会触发其他依赖它的 CompletionStage 的执行。</p>
+<p>CompletableFuture 也正是通过实现CompletionStage接口而实现了强大的异步处理能力。</p>
+<h3 id="CompletableFuture-API"><a href="#CompletableFuture-API" class="headerlink" title="CompletableFuture API"></a>CompletableFuture API</h3><p><a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html" target="_blank" rel="noopener">CompletableFuture</a> 类中提供了有五六十个方法，每个方法签名都比较长，但是还是有很多的类似性，可以通过前缀或后缀，或者参数来区别它们。</p>
+<h4 id="开启异步操作"><a href="#开启异步操作" class="headerlink" title="开启异步操作"></a>开启异步操作</h4><p>通过 Runnable 接口使用 runAsync方法，返回<code>CompletableFuture&lt;Void&gt;</code> 类型。<br>通过 Supplier 接口使用 supplyAsync 方法，返回<code>CompletableFuture&lt;T&gt;</code> 类型。<br><img src="/images/2018-01/1516522002025.png" alt=""></p>
+<h4 id="链式异步操作"><a href="#链式异步操作" class="headerlink" title="链式异步操作"></a>链式异步操作</h4><p>通过 Runnable 接口使用 thenRun()方法，返回<code>CompletableFuture&lt;Void&gt;</code>类型。<br>通过 Consumer 接口使用 thenAccept() 方法，返回<code>CompletableFuture&lt;Void&gt;</code> 接口。<br>通过 Function 接口使用 thenApply() 方法，返回<code>CompletableFuture&lt;R&gt;</code> 类型。<br><img src="/images/2018-01/1516522561934.png" alt=""></p>
+<p>链式的 CompletableFuture 的效果等价于在一个 CompletableFuture 执行完成事件之后添加一个回调，如果将这种模式应用于所有的计算，那么最终会得到一个<strong>完全异步的（或者是响应式 Reactive 的）</strong>应用程序，这个应用程序可以非常强大且可扩展。</p>
+<h4 id="联合异步操作"><a href="#联合异步操作" class="headerlink" title="联合异步操作"></a>联合异步操作</h4><p>CompletableFuture类 也提供了一些方法来实现一个异步操作完成后，执行另一个操作从而产生一个新的CompletableFuture，列如如下所示：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;U,V&gt; <span class="function">CompletableFuture&lt;V&gt; <span class="title">thenCombine</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>thenCombine 方法接受另一个 CompletableFuture，并在这两个future 完成后会将这两个结果传递给 fn 函数，从而产生一个新的CompletableFuture。</p>
+<h4 id="异步和非异步"><a href="#异步和非异步" class="headerlink" title="异步和非异步"></a>异步和非异步</h4><p>正如 <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html#supplyAsync-java.util.function.Supplier-" target="_blank" rel="noopener">Javadoc</a> 所提到的，我们可以完全控制这些方法如何异步的执行：</p>
+<blockquote>
+<p>Actions supplied for dependent completions of non-async methods may be performed by the thread that completes the current CompletableFuture, or by any other caller of a completion method.</p>
+<p>All async methods without an explicit Executor argument are performed using the ForkJoinPool.commonPool() (unless it does not support a parallelism level of at least two, in which case, a new Thread is created to run each task)</p>
+</blockquote>
+<p>这里完整的列出了类中所有的方法，分为异步或非异步执行，异步执行可以显示的传递一个 Executor 执行器：<br><img src="/images/2018-01/1516524534228.png" alt=""></p>
+<h4 id="thenCompose-方法"><a href="#thenCompose-方法" class="headerlink" title="thenCompose 方法"></a>thenCompose 方法</h4><p>CompletableFuture 也提供了一个类似于flatMap 函数的 thenCompose方法，它的方法签名如下所示，这个方法接受一个函数式接口 fn，fn函数将会接受一个 T 类型的参数，并返回一个 <code>CompletionStage&lt;U&gt;</code>的返回值，不同于 thenApply方法，thenApply 方法会将 fn 函数的返回值包装成一个 CompletionStage 返回，但该方法返回不会再次包装 fn 函数的返回值，而是直接将 fn 函数返回的 CompletionStage 直接返回。</p>
+<pre><code class="java">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenCompose</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn)</span></span>
+</code></pre>
+<h4 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h4><p>CompletableFuture 提供了whenComplete 和 handle 方法来处理异常。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="http://colobu.com/2016/02/29/Java-CompletableFuture/" target="_blank" rel="noopener">Java CompletableFuture 详解</a><br><a href="http://millross-consultants.com/completion-stage-future-introduction.html" target="_blank" rel="noopener">Introduction to CompletionStage and CompletableFuture</a><br><a href="http://millross-consultants.com/completable-future-error-propagation.html" target="_blank" rel="noopener">Error propagation in CompletableFuture/CompletionStage pipelines</a><br><a href="http://www.marccarre.com/2016/05/08/java-8-concurrency-completablefuture-in-practice.html" target="_blank" rel="noopener">Java 8 Concurrency - CompletableFuture in practice</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java-8/" rel="tag">#Java 8</a>
+          
+            <a href="/tags/函数式编程/" rel="tag">#函数式编程</a>
+          
+            <a href="/tags/stream/" rel="tag">#stream</a>
+          
+            <a href="/tags/CompletableFuture/" rel="tag">#CompletableFuture</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018-01-11-java-stream-2/" rel="next" title="Java 8 特性：Stream（二）">
+                <i class="fa fa-chevron-left"></i> Java 8 特性：Stream（二）
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018-01-28-java-threadpoolexecutor-1/" rel="prev" title="ThreadPoolExecutor — 基本理论">
+                ThreadPoolExecutor — 基本理论 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Sevenvoid">
+          <p class="site-author-name" itemprop="name">Sevenvoid</p>
+          <p class="site-description motion-element" itemprop="description">一只迷茫的猫</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是-CompletableFuture"><span class="nav-number">1.</span> <span class="nav-text">什么是 CompletableFuture</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CompletableFuture-API"><span class="nav-number">2.</span> <span class="nav-text">CompletableFuture API</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#开启异步操作"><span class="nav-number">2.1.</span> <span class="nav-text">开启异步操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#链式异步操作"><span class="nav-number">2.2.</span> <span class="nav-text">链式异步操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#联合异步操作"><span class="nav-number">2.3.</span> <span class="nav-text">联合异步操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#异步和非异步"><span class="nav-number">2.4.</span> <span class="nav-text">异步和非异步</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thenCompose-方法"><span class="nav-number">2.5.</span> <span class="nav-text">thenCompose 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#异常处理"><span class="nav-number">2.6.</span> <span class="nav-text">异常处理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sevenvoid</span>
+</div>
+
+<div class="powered-by">
+  版权归 Sevenvoid 所有
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'sevenvoid';
+      var disqus_identifier = '2018-01-21-java-CompletableFuture/';
+      var disqus_title = "Java 8 特性：CompletableFuture";
+      var disqus_url = 'http://sevenvoid.com/2018-01-21-java-CompletableFuture/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

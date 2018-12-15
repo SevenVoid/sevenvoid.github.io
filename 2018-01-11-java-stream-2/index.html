@@ -1,0 +1,683 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Java 8,函数式编程,stream,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="在前一篇文章中，详细介绍了流是什么，与集合的区别，操作流时需要注意的一些特性和规则，以及 java.util.Stream.stream 类中提供的流操作分类。这篇文章我们就来详细介绍一下具体的几个不容易理解的流操作。 映射操作Map 函数Map映射函数的方法签名如下所示，它接受一个 mapper 行为参数，而 mapper 行为参数将会接受一个 T 类型的参数，并返回一个 R 类型的值：1&amp;lt">
+<meta name="keywords" content="Java 8,函数式编程,stream">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 8 特性：Stream（二）">
+<meta property="og:url" content="http://sevenvoid.com/2018-01-11-java-stream-2/index.html">
+<meta property="og:site_name" content="Sevenvoid&#39;s Blog">
+<meta property="og:description" content="在前一篇文章中，详细介绍了流是什么，与集合的区别，操作流时需要注意的一些特性和规则，以及 java.util.Stream.stream 类中提供的流操作分类。这篇文章我们就来详细介绍一下具体的几个不容易理解的流操作。 映射操作Map 函数Map映射函数的方法签名如下所示，它接受一个 mapper 行为参数，而 mapper 行为参数将会接受一个 T 类型的参数，并返回一个 R 类型的值：1&amp;lt">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1515425733745.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1515602622539.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1515602752348.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2018-01/1515602778257.png">
+<meta property="og:updated_time" content="2018-12-15T09:44:33.745Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java 8 特性：Stream（二）">
+<meta name="twitter:description" content="在前一篇文章中，详细介绍了流是什么，与集合的区别，操作流时需要注意的一些特性和规则，以及 java.util.Stream.stream 类中提供的流操作分类。这篇文章我们就来详细介绍一下具体的几个不容易理解的流操作。 映射操作Map 函数Map映射函数的方法签名如下所示，它接受一个 mapper 行为参数，而 mapper 行为参数将会接受一个 T 类型的参数，并返回一个 R 类型的值：1&amp;lt">
+<meta name="twitter:image" content="http://sevenvoid.com/images/2018-01/1515425733745.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://sevenvoid.com/2018-01-11-java-stream-2/">
+
+  <title> Java 8 特性：Stream（二） | Sevenvoid's Blog </title>
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Sevenvoid's Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br>
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Java 8 特性：Stream（二）
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-01-11T00:00:00+08:00" content="2018-01-11">
+              2018-01-11
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope="" itemtype="https://schema.org/Thing">
+                  <a href="/categories/函数式编程/" itemprop="url" rel="index">
+                    <span itemprop="name">函数式编程</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018-01-11-java-stream-2/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018-01-11-java-stream-2/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在前一篇文章中，详细介绍了流是什么，与集合的区别，操作流时需要注意的一些特性和规则，以及 java.util.Stream.stream 类中提供的流操作分类。这篇文章我们就来详细介绍一下具体的几个不容易理解的流操作。</p>
+<h3 id="映射操作"><a href="#映射操作" class="headerlink" title="映射操作"></a>映射操作</h3><h4 id="Map-函数"><a href="#Map-函数" class="headerlink" title="Map 函数"></a>Map 函数</h4><p>Map映射函数的方法签名如下所示，它接受一个 mapper 行为参数，而 mapper 行为参数将会接受一个 T 类型的参数，并返回一个 R 类型的值：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;R&gt; <span class="function">Stream&lt;R&gt; <span class="title">map</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends R&gt; mapper)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>理解Map映射函数的关键在于，参数 T 经过 mapper 行为参数映射后返回的 R 值将会被Map函数包装成<code>Stream&lt;R&gt;</code>值。继续上一篇提到的菜单列表例子，假如需要返回每项菜的名字，我们可以这样实现：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">  List&lt;String&gt; dishNames = menus.stream()</span><br><span class="line">.map(dish -&gt; dish.getName())   <span class="comment">//此处map返回值为Stream&lt;String&gt;， dish来源于Stream&lt;Dish&gt;</span></span><br><span class="line">.collect(Collectors.toList())</span><br></pre></td></tr></table></figure></p>
+<p>换句话说，流水线中的元素都是Stream类型的。</p>
+<a id="more"></a>
+<h4 id="FlatMap-函数"><a href="#FlatMap-函数" class="headerlink" title="FlatMap 函数"></a>FlatMap 函数</h4><p>FlatMap 函数的方法签名如下所示，它接受一个 mapper 行为参数，而 mapper 行为参数将会接受一个 T 类型的参数，并返回一个 <code>Stream&lt;? extends R &gt;</code> 类型的值：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;R&gt; <span class="function">Stream&lt;R&gt; <span class="title">flatMap</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends Stream&lt;? extends R&gt;&gt; mapper)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>FlatMap 函数有点类似于 Map 函数，但是核心区别就在于它的 mapper 函数的返回值为 <code>Stream&lt;? extends R &gt;</code>，它返回后 flatMap 函数不会再将结果包装成<code>Stream&lt;Stream&lt;? extends R&gt;&gt;</code> 类型值。举个例子，假设有一个字符串列表<code>[&quot;Hello&quot;,&quot;World&quot;]</code>，需要返回一个不包含重复字符的列表，我们可以这样实现：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">  List&lt;String&gt; distinctChars = words.stream()</span><br><span class="line">.map(word -&gt; word.split(<span class="string">" "</span>)) <span class="comment">//返回Stream&lt;String[]&gt;</span></span><br><span class="line">.distinct()</span><br><span class="line">.collect(Collectors.toList())</span><br></pre></td></tr></table></figure></p>
+<p>很可惜，该写法将会得不到正确地结果，原因就在于map 函数返回的值为<code>Stream&lt;String[]&gt;</code>，而传递给 distinct 函数处理时，是处理的字符串数组类型<code>String[]</code>，并不是字符串类型，这个时候就需要使用 flatMap 函数，它能将<code>String[]</code>类型流化后再返回，即<code>Arrays.stream(String[])</code>后再返回。flatMap 函数是一个能将一个流元素映射成另一个包含多个元素的新流的具有副作用的函数，也即扁平化。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">  List&lt;String&gt; distinctChars = words.stream()</span><br><span class="line">.flatMap(word -&gt; Arrays.stream(word.split(<span class="string">""</span>))) <span class="comment">//返回Stream&lt;String&gt;</span></span><br><span class="line">.distinct()</span><br><span class="line">.collect(Collectors.toList())</span><br></pre></td></tr></table></figure></p>
+<p>可以用如下图来区分 map 和 flatMap 函数处理前后的对比：<br><img src="/images/2018-01/1515425733745.png" alt=""><br>Map 和 FlatMap函数还有针对IntStream、DoubleStream、LongStream三种特殊流的对应操作。</p>
+<h3 id="归约操作"><a href="#归约操作" class="headerlink" title="归约操作"></a>归约操作</h3><h4 id="Reduce-函数"><a href="#Reduce-函数" class="headerlink" title="Reduce 函数"></a>Reduce 函数</h4><p>Reduce 函数成为归约操作，它能将流水线归约成一个非流的最终值，它有如下三种形式，其中 identity 为类型 T 的初始累积变量，accumulator 行为参数称为累加器，它接受两个参数，一个代表 identity 的累积变量，一个为流中的元素，并返回新的 identity，而 combiner 行为参数称为连接函数，在<strong>并行处理</strong>时，它能将identity1 和 identity2 这两个中间的累积变量连接起来生成最终的结果并返回：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">T <span class="title">reduce</span><span class="params">(T identity, BinaryOperator&lt;T&gt; accumulator)</span></span></span><br><span class="line"><span class="function">Optional&lt;T&gt; <span class="title">reduce</span><span class="params">(BinaryOperator&lt;T&gt; accumulator)</span></span></span><br><span class="line"><span class="function">&lt;U&gt; U <span class="title">reduce</span><span class="params">(U identity,BiFunction&lt;U, ? <span class="keyword">super</span> T, U&gt; accumulator,BinaryOperator&lt;U&gt; combiner)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>例如，假设需要返回菜单中所有菜品 calories 的总和，我们可以这样实现：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> sum = menus.stream().map(dish -&gt; dish.getCalories())</span><br><span class="line">	.reduce(<span class="number">0</span>, (a, b)-&gt; a + b);</span><br><span class="line"></span><br><span class="line">Optional&lt;Integer&gt; sum2 = menus.stream().map(-&gt; dish.getCalories())</span><br><span class="line">			.reduce((a,b)-&gt;a + b);</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> sum3 = menus.parallelStream().map(-&gt; dish.getCalories())</span><br><span class="line">			.reduce(<span class="number">0</span>,(a,b)-&gt; a+b,(sum1, sum2)-&gt; sum1 + sum2)</span><br></pre></td></tr></table></figure></p>
+<p>注意，在第二种实现中，没有提供初始的 identity 时将会返回一个Optional 类型的值，表示此时的结果是不确定的，流可能为空，可以通过Optional判断是否有值返回；第三种实现，可以更好地并行处理，而且可以将类型 T 映射到类型 U 返回，但是要求 combiner 函数需要满足结合性（Associativity）。</p>
+<h3 id="收集操作"><a href="#收集操作" class="headerlink" title="收集操作"></a>收集操作</h3><h4 id="Collect-函数"><a href="#Collect-函数" class="headerlink" title="Collect 函数"></a>Collect 函数</h4><p>Collect 函数本质上是一个归约操作，区别就在于它是一个可变的归约操作，一般会将结果归约到一个可变的容器中，比如 ArrayList、Set等。第一种Collect 方法签名如下所示，它接受三个参数，第一个 supplier 行为参数将会产生一个 R 类型的可变容器； 第二个 accumulator 行为参数将会接受两个参数，第一个参数是 supplier 行为参数返回的可变容器，第二个参数是类型为 T的流中的元素，并返回一个 R 类型的可变容器；第三个 combiner 行为参数也会接收两个可变容器参数，并返回这两个可变容器的连接结果，其最终将会是 R 类型的可变容器中存放了 T 类型的元素：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;R&gt; <span class="function">R <span class="title">collect</span><span class="params">(Supplier&lt;R&gt; supplier, BiConsumer&lt;R,? <span class="keyword">super</span> T&gt; accumulator, BiConsumer&lt;R,R&gt; combiner)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>比如，假设需要返回菜品的名字列表，可以这样实现：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; dishNames = menus.stream()</span><br><span class="line">    .map(dish -&gt; dish.getName)</span><br><span class="line">    .collect(<span class="keyword">new</span> ArrayList(),</span><br><span class="line">    (list, name) -&gt; list.add(name),</span><br><span class="line">    (list1, list2) -&gt; list1.add(list2))</span><br></pre></td></tr></table></figure></p>
+<p>注意在这种情况下，Collect 函数执行的特征为，IDENTITY_FINISH和 CONCURRENT但并非UNORDERED的收集器，在这种情况下，如果集合中的元素时有序的，将会顺序处理，如果是无序的集合将会并行处理。</p>
+<p>Collect 方法签名的第二种形式如下所示，它接收一个 Collector 参数：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;R,A&gt; <span class="function">R <span class="title">collect</span><span class="params">(Collector&lt;? <span class="keyword">super</span> T,A,R&gt; collector)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>Collector 参数是一个接口，它的最终语义是将会收集 T 类型的流中元素，并最终返回一个R类型的值（通常但不一定是集合），中间累加器的类型为 A，它的内容如下所示：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Collector</span>&lt;<span class="title">T</span>, <span class="title">A</span>, <span class="title">R</span>&gt; </span>&#123;</span><br><span class="line">        <span class="function">Supplier&lt;A&gt; <span class="title">supplier</span><span class="params">()</span></span>;</span><br><span class="line">        <span class="function">BiConsumer&lt;A, T&gt; <span class="title">accumulator</span><span class="params">()</span></span>;</span><br><span class="line">        <span class="function">Function&lt;A, R&gt; <span class="title">finisher</span><span class="params">()</span></span>;</span><br><span class="line">        <span class="function">BinaryOperator&lt;A&gt; <span class="title">combiner</span><span class="params">()</span></span>;</span><br><span class="line">        <span class="function">Set&lt;Characteristics&gt; <span class="title">characteristics</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>它跟 Collect 函数三个参数的形式的区别就在于可以定义 finisher 行为参数和characteristics 特征。finsher 行为参数必须返回在累积过程的最后要调用的一个函数，以便将累加器对象转换为整个集合操作的最终结果，如果累加器对象恰好符合预期的最终结果，因此无需进行转换，所以finisher方法只需返回identity函数。<strong>从这里也可以看出实现 Collector 接口，最终的结果可以不一定返回一个可变的容器</strong>； characteristics 方法将会返回一个Characteristics集合，这个集合可以包含如下三个参数的组合：</p>
+<ol>
+<li>UNORDERED——归约结果不受流中项目的遍历和累积顺序的影响。</li>
+<li>CONCURRENT——accumulator函数可以从多个线程同时调用，且该收集器可以并行归约流。如果收集器没有标为UNORDERED，那它仅在用于无序数据源时才可以并行归约。</li>
+<li>IDENTITY_FINISH——这表明完成器方法返回的函数是一个恒等函数，可以跳过。这种情况下，累加器对象将会直接用作归约过程的最终结果。这也意味着，将累加器A不加检查地转换为结果R是安全的。</li>
+</ol>
+<p>接着上面的例子，我们可以自定义一个 Collector 的实现，达到相同的结果：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.util.function.*;</span><br><span class="line"><span class="keyword">import</span> java.util.stream.Collector;</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> java.util.stream.Collector.Characteristics.*;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ToListCollector</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Collector</span>&lt;<span class="title">T</span>, <span class="title">List</span>&lt;<span class="title">T</span>&gt;, <span class="title">List</span>&lt;<span class="title">T</span>&gt;&gt; </span>&#123;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> Supplier&lt;List&lt;T&gt;&gt; supplier() &#123;</span><br><span class="line">    <span class="keyword">return</span> ArrayList::<span class="keyword">new</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> BiConsumer&lt;List&lt;T&gt;, T&gt; accumulator() &#123;</span><br><span class="line">    <span class="keyword">return</span> List::add;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> Function&lt;List&lt;T&gt;, List&lt;T&gt;&gt; finisher() &#123;</span><br><span class="line">    <span class="keyword">return</span> Function.indentity();</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> BinaryOperator&lt;List&lt;T&gt;&gt; combiner() &#123;</span><br><span class="line">        <span class="keyword">return</span> (list1, list2) -&gt; &#123;</span><br><span class="line">        list1.addAll(list2);</span><br><span class="line">        <span class="keyword">return</span> list1;</span><br><span class="line">        &#125;; </span><br><span class="line">&#125;</span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Set&lt;Characteristics&gt; <span class="title">characteristics</span><span class="params">()</span> </span>&#123;</span><br><span class="line"> <span class="keyword">return</span> Collections.unmodifiableSet(EnumSet.of(</span><br><span class="line">    IDENTITY_FINISH, CONCURRENT));</span><br><span class="line"> &#125; </span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意这种情况下，将不会并行处理，因为List是有序的。 </p>
+<p>此外，<a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collector.html" target="_blank" rel="noopener">java.util.stream.Collectors</a> 类中提供了大量的工厂方法，可以直接使用，如下所示：<br><img src="/images/2018-01/1515602622539.png" alt=""><br><img src="/images/2018-01/1515602752348.png" alt=""><br><img src="/images/2018-01/1515602778257.png" alt=""></p>
+<p>以上就是在使用流 API 时，需要重点注意的操作，理解到位了，就能很好地写出优雅的流式代码，也会从此爱上函数式编程模型。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="">Java 8 in action</a><br><a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html" target="_blank" rel="noopener">Java doc</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java-8/" rel="tag">#Java 8</a>
+          
+            <a href="/tags/函数式编程/" rel="tag">#函数式编程</a>
+          
+            <a href="/tags/stream/" rel="tag">#stream</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018-01-06-java-stream-1/" rel="next" title="Java 8 特性：Stream（一）">
+                <i class="fa fa-chevron-left"></i> Java 8 特性：Stream（一）
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018-01-21-java-CompletableFuture/" rel="prev" title="Java 8 特性：CompletableFuture">
+                Java 8 特性：CompletableFuture <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Sevenvoid">
+          <p class="site-author-name" itemprop="name">Sevenvoid</p>
+          <p class="site-description motion-element" itemprop="description">一只迷茫的猫</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#映射操作"><span class="nav-number">1.</span> <span class="nav-text">映射操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Map-函数"><span class="nav-number">1.1.</span> <span class="nav-text">Map 函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FlatMap-函数"><span class="nav-number">1.2.</span> <span class="nav-text">FlatMap 函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#归约操作"><span class="nav-number">2.</span> <span class="nav-text">归约操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reduce-函数"><span class="nav-number">2.1.</span> <span class="nav-text">Reduce 函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#收集操作"><span class="nav-number">3.</span> <span class="nav-text">收集操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Collect-函数"><span class="nav-number">3.1.</span> <span class="nav-text">Collect 函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sevenvoid</span>
+</div>
+
+<div class="powered-by">
+  版权归 Sevenvoid 所有
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'sevenvoid';
+      var disqus_identifier = '2018-01-11-java-stream-2/';
+      var disqus_title = "Java 8 特性：Stream（二）";
+      var disqus_url = 'http://sevenvoid.com/2018-01-11-java-stream-2/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

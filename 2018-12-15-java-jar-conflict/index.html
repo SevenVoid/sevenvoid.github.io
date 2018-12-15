@@ -1,0 +1,683 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Java,Jar包冲突,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="使用Java语言进行项目开发时，尤其是在面对大型复杂型项目时，Jar包或Class冲突可以说是非常常见的。最直接的原因就是项目依赖了大量的二方库，这些二方库又依赖了其他的库，因此会间接引入大量Jar，导致大量Jar包冲突，需要进行大量的排包工作。很容易想到的原因就是构建工具如maven关联Jar引起的。因为众所周知，maven的传递性依赖非常方便，但也会让我们陷入依赖的地狱。">
+<meta name="keywords" content="Java,Jar包冲突">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jar包冲突表象、本质与解决方案">
+<meta property="og:url" content="http://sevenvoid.com/2018-12-15-java-jar-conflict/index.html">
+<meta property="og:site_name" content="Sevenvoid&#39;s Blog">
+<meta property="og:description" content="使用Java语言进行项目开发时，尤其是在面对大型复杂型项目时，Jar包或Class冲突可以说是非常常见的。最直接的原因就是项目依赖了大量的二方库，这些二方库又依赖了其他的库，因此会间接引入大量Jar，导致大量Jar包冲突，需要进行大量的排包工作。很容易想到的原因就是构建工具如maven关联Jar引起的。因为众所周知，maven的传递性依赖非常方便，但也会让我们陷入依赖的地狱。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-15T15:05:49.167Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jar包冲突表象、本质与解决方案">
+<meta name="twitter:description" content="使用Java语言进行项目开发时，尤其是在面对大型复杂型项目时，Jar包或Class冲突可以说是非常常见的。最直接的原因就是项目依赖了大量的二方库，这些二方库又依赖了其他的库，因此会间接引入大量Jar，导致大量Jar包冲突，需要进行大量的排包工作。很容易想到的原因就是构建工具如maven关联Jar引起的。因为众所周知，maven的传递性依赖非常方便，但也会让我们陷入依赖的地狱。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://sevenvoid.com/2018-12-15-java-jar-conflict/">
+
+  <title> Jar包冲突表象、本质与解决方案 | Sevenvoid's Blog </title>
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Sevenvoid's Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br>
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Jar包冲突表象、本质与解决方案
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-12-15T00:00:00+08:00" content="2018-12-15">
+              2018-12-15
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope="" itemtype="https://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018-12-15-java-jar-conflict/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018-12-15-java-jar-conflict/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>使用Java语言进行项目开发时，尤其是在面对大型复杂型项目时，Jar包或Class冲突可以说是非常常见的。最直接的原因就是项目依赖了大量的二方库，这些二方库又依赖了其他的库，因此会间接引入大量Jar，导致大量Jar包冲突，需要进行大量的排包工作。很容易想到的原因就是构建工具如maven关联Jar引起的。因为众所周知，maven的传递性依赖非常方便，但也会让我们陷入依赖的地狱。</p>
+<a id="more"></a>
+<h2 id="表象"><a href="#表象" class="headerlink" title="表象"></a>表象</h2><p>那有哪些现象我们可以初步定位是Jar包或者Class冲突导致的问题呢？通常分为两大类：一类是比较隐蔽的，在编译的时候不会报错，但是程序运行时的结果却与预期的不一致；另一类比较直观，编译或者运行时常常会报一个异常，常见异常如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.lang.ClassNotFundException</span><br><span class="line">java.lang.NoSuchMethodError</span><br><span class="line">java.lang.NoClassDefFoundError</span><br><span class="line">java.lang.LinkageError</span><br></pre></td></tr></table></figure></p>
+<h2 id="本质"><a href="#本质" class="headerlink" title="本质"></a>本质</h2><p>上面那些异常总的来说可以归结为两种类型的Jar包冲突问题：<br><strong>第一类：同一个Jar包出现了多个不同的类版本：应用程序依赖的同一个Jar包出现了多个不同版本，并选择了错误的版本而导致JVM加载不到需要的类或加载了错误版本的类</strong></p>
+<p>随着项目的迭代进行，势必有越来越多的二方包会自我升级，有些包的升级可能修改了某个类的签名或者方法签名。针对这类问题，大多数时候都是由Jar包依赖管理工具引发的冲突。不管是Maven，还是Gradle，其传递性依赖为我们带来了极大地便利性，但同时也引入了问题 - 版本冲突。以Maven为例，当同一个Jar包出现了多个不同的版本，针对该问题Maven也有一套仲裁机制来决定最终选用哪个版本，但Maven的选择往往不一定是我们所期望的，这也是产生Jar包冲突最常见的原因之一。先来看下Maven的仲裁机制：</p>
+<ul>
+<li>优先按照依赖管理<dependencymanagement>元素中指定的版本声明进行仲裁，此时下面的两个原则都无效了</dependencymanagement></li>
+<li>若无版本声明，则按照“短路径优先”的原则（Maven2.0）进行仲裁，即选择依赖树中路径最短的版本</li>
+<li>若路径长度一致，则按照“第一声明优先”的原则进行仲裁，即选择POM中最先声明的版本从maven的仲裁机制中可以发现，除了第一条仲裁规则（这也是解决Jar包冲突的常用手段之一）外，后面的两条原则，对于同一个Jar包不同版本的选择，Maven的选择有点“随机性”了。但每个应用都有其特殊性，该依赖哪个版本，Maven也是没办法帮你完全搞定，如果你没有规规矩矩地使用<dependencymanagement>来进行依赖管理，就注定了逃脱不了第一类Jar包冲突问题。</dependencymanagement></li>
+</ul>
+<p><strong>第二类不同的Jar包出现了类路径一致的类：同样的类（类的全限定名完全一样）出现在多个不同的依赖Jar包中，即该类有多个版本，并由于Jar包加载的先后顺序导致JVM加载了错误版本的类</strong></p>
+<p>这类冲突比较隐蔽，这种情况下JVM加载的类由Jar所在的加载路径和文件系统的文件加载顺序确定的。对于这类Jar包冲突问题，即多个不同的Jar包有类冲突，这相对于第一类问题就显得更为棘手。为什么这么说呢？<br>在这种情况下，两个不同的Jar包，假设为A、 B，它们的名称互不相同，甚至可能完全不沾边，如果不是出现冲突问题，你可能都不会发现它们有共有的类！对于A、B这两个Jar包，Maven就显得无能为力了，因为Maven只会为你针对同一个Jar包的不同版本进行仲裁，而这俩是属于不同的Jar包，超出了Maven的依赖管理范畴。此时，当A、B都出现在应用程序的类路径下时，就会存在潜在的冲突风险，即A、B的加载先后顺序就决定着JVM最终选择的类版本，如果选错了，就会出现诡异的第二类冲突问题。那么Jar包的加载顺序都由哪些因素决定的呢？具体如下：</p>
+<ul>
+<li>Jar包所处的加载路径，或者换个说法就是加载该Jar包的类加载器在JVM类加载器树结构中所处层级。由于JVM类加载的双亲委派机制，层级越高的类加载器越先加载其加载路径下的类，顾名思义，引导类加载器（bootstrap ClassLoader，也叫启动类加载器）是最先加载其路径下Jar包的，其次是扩展类加载器（extension ClassLoader），再次是系统类加载器（system ClassLoader，也就是应用加载器appClassLoader），Jar包所处加载路径的不同，就决定了它的加载顺序的不同。</li>
+<li>文件系统的文件加载顺序。这个因素很容易被忽略。因tomcat等容器的ClassLoader获取加载路径下的文件列表时是不排序的，这就依赖于底层文件系统返回的顺序，那么当不同环境之间的文件系统不一致时，就会出现有的环境没问题，有的环境出现冲突。比如：测试环境怎么测都没问题，但一上线就出现冲突问题，规避这种问题的最佳办法就是尽量保证测试环境与线上一致。很显然大多数时候都是应用Jar包，因此大多可能原因是文件加载顺序导致的。</li>
+</ul>
+<p>此外Maven还提供了几种依赖范围，用于控制在不同的环境下使用不同的依赖，也可能会导致上述问题，这些范围是：</p>
+<ul>
+<li>compile: 默认依赖范围，不申明的话就是compile，对于编译、测试、运行三种classpath都有效</li>
+<li>test: 只对测试有效，在编译主代码或者运行项目时无法使用此类依赖</li>
+<li>provided: 对编译和测试有效，运行时无效，运行时已有其他方式添加了此依赖，比如servlet-api</li>
+<li>runtime: 对测试和运行时有效，在编译主代码时无效，比如JDBC驱动实现</li>
+<li>system: 和provided依赖范围一致</li>
+</ul>
+<h2 id="定位与解决"><a href="#定位与解决" class="headerlink" title="定位与解决"></a>定位与解决</h2><p>当遇到上述这些冲突时，可以有如下方式来快速定位解决问题：<br><strong>方式一：使用mvn dependency:tree 命令定位</strong></p>
+<p>它有如下参数：-Dverbose: verbose参数将详细显示项目所依赖的所有Jar包，包括冲突和未冲突的；-Dincludes: 指定要查找显示的包，格式为[groupId]:[artifactid]:[type]:[version]，支持 * 匹配，用逗号分隔多个；-Dexcludes: 指定不显示的包，格式和includes相同。一般来说遇到包冲突时，将冲突的包按上述方式找出来，并排除，能解决大部分的问题。排除包的时候，也只需要我们在本项目的POM文件中对于依赖的Jar包，在<dependency>下使用<exclusion>标签即可，并在需要时主动依赖被排除的包。</exclusion></dependency></p>
+<p><strong>方式二：IDE协助查找类冲突</strong></p>
+<p>使用IDE查找某个类的方式，当键入类名称时，如果出来了类全限定名完全相同的但位于不同Jar包中的多个类时，就很可能有冲突了</p>
+<p><strong>方式三：使用IDE的Maven helper插件定位</strong></p>
+<p><strong>方式四：使用第三方Java诊断工具来排查</strong></p>
+<p>比如<a href="https://alibaba.github.io/arthas/" target="_blank" rel="noopener">Arthas</a></p>
+<p><strong>方式五：也可以使用如下代码来诊断</strong><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.util.Enumeration;</span><br><span class="line"><span class="keyword">import</span> java.util.HashSet;</span><br><span class="line"><span class="keyword">import</span> java.util.Set;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassConflictCheck</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">ClassConflictCheck</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">checkConflictClass</span><span class="params">(Class cls)</span> </span>&#123;</span><br><span class="line">        checkConflictClass(cls.getName().replace(<span class="string">"."</span>,<span class="string">"/"</span>) + <span class="string">".class"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">checkConflictClass</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Enumeration&lt;URL&gt; urls =  Thread.currentThread().getContextClassLoader().getResources(path);</span><br><span class="line">            Set&lt;String&gt; files = <span class="keyword">new</span> HashSet&lt;String&gt;();</span><br><span class="line">            <span class="keyword">while</span> (urls.hasMoreElements()) &#123;</span><br><span class="line">                URL url = urls.nextElement();</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> != url) &#123;</span><br><span class="line">                    String file = url.getFile();</span><br><span class="line">                    <span class="keyword">if</span> (<span class="keyword">null</span> != file &amp;&amp; file.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                        files.add(file);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">"Conflict class of "</span> + path + <span class="string">" in "</span> + files.size() + <span class="string">" jar: "</span> + files);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassConflictCheck.checkConflictClass(java.net.URL.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>方式六：使用Maven插件</strong><br>maven-enforcer-plugin，这个强大的maven插件，配合extra-enforcer-rules工具，能自动扫描Jar包将冲突检测并打印出来，汗颜的是。其原理其实也比较简单，通过扫描Jar包中的class，记录每个class对应的Jar包列表，如果有多个即是冲突了，故不必深究，我们只需要关注如何用它即可。</p>
+<p>在最终需要打包运行的应用模块pom中，引入maven-enforcer-plugin的依赖，在build阶段即可发现问题，并解决它。比如对于具有parent pom的多模块项目，需要将插件依赖声明在应用模块的pom中。这里有童鞋可能会疑问，为什么不把插件依赖声明在parent pom中呢？那样依赖它的应用子模块岂不是都能复用了？</p>
+<p>这里之所以强调“打包运行的应用模块pom”，是因为冲突检测针对的是最终集成的应用，关注的是应用运行时是否会出现冲突问题，而每个不同的应用模块，各自依赖的Jar包集合是不同的，由此而产生的<ignoreclasses>列表也是有差异的，因此只能针对应用模块pom分别引入该插件。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-enforcer-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.4.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">id</span>&gt;</span>enforce<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">rules</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">dependencyConvergence</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">rules</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">goal</span>&gt;</span>enforce<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">id</span>&gt;</span>enforce-ban-duplicate-classes<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">goal</span>&gt;</span>enforce<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">rules</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">banDuplicateClasses</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">ignoreClasses</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">ignoreClass</span>&gt;</span>javax.*<span class="tag">&lt;/<span class="name">ignoreClass</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">ignoreClass</span>&gt;</span>org.junit.*<span class="tag">&lt;/<span class="name">ignoreClass</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">ignoreClass</span>&gt;</span>net.sf.cglib.*<span class="tag">&lt;/<span class="name">ignoreClass</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">ignoreClass</span>&gt;</span>org.apache.commons.logging.*<span class="tag">&lt;/<span class="name">ignoreClass</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">ignoreClass</span>&gt;</span>org.springframework.remoting.rmi.RmiInvocationHandler<span class="tag">&lt;/<span class="name">ignoreClass</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">ignoreClasses</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">findAllDuplicates</span>&gt;</span>true<span class="tag">&lt;/<span class="name">findAllDuplicates</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">banDuplicateClasses</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">rules</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">fail</span>&gt;</span>true<span class="tag">&lt;/<span class="name">fail</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.mojo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>extra-enforcer-rules<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-beta-6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure></ignoreclasses></p>
+<p>maven-enforcer-plugin是通过很多预定义的标准规则（<a href="http://maven.apache.org/enforcer/enforcer-rules/index.html" target="_blank" rel="noopener">standard rules</a>）和用户自定义规则，来约束maven的环境因素，如maven版本、JDK版本等等，它有很多好用的特性，具体可参见官网。而Extra Enforcer Rules则是MojoHaus项目下的针对maven-enforcer-plugin而开发的提供额外规则的插件，这其中就包含前面所提的重复类检测功能，具体用法可参见<a href="http://www.mojohaus.org/extra-enforcer-rules/" target="_blank" rel="noopener">官网</a>，这里就不详细叙述了。</p>
+<p><strong>方式七：最小化依赖</strong></p>
+<p>最后也是最重要的规则就是最小化项目的依赖，每一次有新的依赖Jar包，都可以仔细去分析一下该Jar的依赖情况，排除不需要的Jar包，可以使用<code>mvn dependency:tree -Dverbose &gt; dp.txt</code> 命令分析。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>以上就是对于Jar包冲突问题的现象分析，以及提出的解决方案。希望下次遇到同样的问题时，能快速定位并解决，提高自己的工作效率！</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+            <a href="/tags/Jar包冲突/" rel="tag">#Jar包冲突</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018-01-28-java-threadpoolexecutor-2/" rel="next" title="ThreadPoolExecutor —— 源码分析">
+                <i class="fa fa-chevron-left"></i> ThreadPoolExecutor —— 源码分析
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Sevenvoid">
+          <p class="site-author-name" itemprop="name">Sevenvoid</p>
+          <p class="site-description motion-element" itemprop="description">一只迷茫的猫</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#表象"><span class="nav-number">1.</span> <span class="nav-text">表象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#本质"><span class="nav-number">2.</span> <span class="nav-text">本质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定位与解决"><span class="nav-number">3.</span> <span class="nav-text">定位与解决</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sevenvoid</span>
+</div>
+
+<div class="powered-by">
+  版权归 Sevenvoid 所有
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'sevenvoid';
+      var disqus_identifier = '2018-12-15-java-jar-conflict/';
+      var disqus_title = "Jar包冲突表象、本质与解决方案";
+      var disqus_url = 'http://sevenvoid.com/2018-12-15-java-jar-conflict/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

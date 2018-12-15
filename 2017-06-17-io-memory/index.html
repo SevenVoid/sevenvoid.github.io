@@ -1,0 +1,730 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="IO,Netty,Network,computer,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="前言存储器是计算机系统的重要组成部分。在理想情况下存储器的速度应当非常快，能跟上处理器的速度，容量大而且价格也非常便宜，但目前无法同时满足这三个条件。这可以说是在存储器领域的CAP理论了。因此如何对它加以有效的管理，不仅直接影响到存储器的利用率，而且还能对系统性能有重大影响。 多级存储器结构在现代的计算机中，存储层次根据具体的功能分工细化为寄存器、高速缓存、主存储器、磁盘缓存、固定磁盘、可移动存储">
+<meta name="keywords" content="IO,Netty,Network,computer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="存储器管理">
+<meta property="og:url" content="http://sevenvoid.com/2017-06-17-io-memory/index.html">
+<meta property="og:site_name" content="Sevenvoid&#39;s Blog">
+<meta property="og:description" content="前言存储器是计算机系统的重要组成部分。在理想情况下存储器的速度应当非常快，能跟上处理器的速度，容量大而且价格也非常便宜，但目前无法同时满足这三个条件。这可以说是在存储器领域的CAP理论了。因此如何对它加以有效的管理，不仅直接影响到存储器的利用率，而且还能对系统性能有重大影响。 多级存储器结构在现代的计算机中，存储层次根据具体的功能分工细化为寄存器、高速缓存、主存储器、磁盘缓存、固定磁盘、可移动存储">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://sevenvoid.com/images/2017-06/io_memory_1.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2017-06/mm_2.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2017-06/io_memory_2.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2017-06/io_memory_3.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2017-06/io_memory_4.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2017-06/io_memory_5.png">
+<meta property="og:image" content="http://sevenvoid.com/images/2017-06/io_memory_6.png">
+<meta property="og:updated_time" content="2018-12-15T09:44:33.741Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="存储器管理">
+<meta name="twitter:description" content="前言存储器是计算机系统的重要组成部分。在理想情况下存储器的速度应当非常快，能跟上处理器的速度，容量大而且价格也非常便宜，但目前无法同时满足这三个条件。这可以说是在存储器领域的CAP理论了。因此如何对它加以有效的管理，不仅直接影响到存储器的利用率，而且还能对系统性能有重大影响。 多级存储器结构在现代的计算机中，存储层次根据具体的功能分工细化为寄存器、高速缓存、主存储器、磁盘缓存、固定磁盘、可移动存储">
+<meta name="twitter:image" content="http://sevenvoid.com/images/2017-06/io_memory_1.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://sevenvoid.com/2017-06-17-io-memory/">
+
+  <title> 存储器管理 | Sevenvoid's Blog </title>
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Sevenvoid's Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br>
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope="" itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                存储器管理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-06-17T00:00:00+08:00" content="2017-06-17">
+              2017-06-17
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope="" itemtype="https://schema.org/Thing">
+                  <a href="/categories/Network/" itemprop="url" rel="index">
+                    <span itemprop="name">Network</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017-06-17-io-memory/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017-06-17-io-memory/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>存储器是计算机系统的重要组成部分。在理想情况下存储器的速度应当非常快，能跟上处理器的速度，容量大而且价格也非常便宜，但目前无法同时满足这三个条件。这可以说是在存储器领域的CAP理论了。因此如何对它加以有效的管理，不仅直接影响到存储器的利用率，而且还能对系统性能有重大影响。</p>
+<h2 id="多级存储器结构"><a href="#多级存储器结构" class="headerlink" title="多级存储器结构"></a>多级存储器结构</h2><p>在现代的计算机中，存储层次根据具体的功能分工细化为寄存器、高速缓存、主存储器、磁盘缓存、固定磁盘、可移动存储介质等6层。越靠近CPU的地方存储介质的访问速度越快，价格越高，相应的容量也越小。如图所示：</p>
+<p><img src="/images/2017-06/io_memory_1.png" alt=""></p>
+<a id="more"></a>
+<p>在存储层次中，寄存器和主存储器又被称为可执行存储器，相比较于外存，计算机所采用的访问机制与时间均是不同的。进程可以在很少的时钟周期内使用一条load或者store指令对可执行存储器进行访问，但对外存的访问则需要通过I/O设备来实现，其中又涉及到中断、设备驱动程序，以及物理设备的运行，所需时间远远高于对可执行器的访问。</p>
+<ol>
+<li><p>寄存器：寄存器的访问速度最快，一般以字(word)为单位，比如32位寄存器，64位寄存器。根据功能的不同又可以划分为不同的种类，比如指令寄存器、标志位寄存器、循环控制寄存器、条件操作寄存器、地址转换寄存器、用于栈操作的栈寄存器等，如ax,bx,cx,sp等。</p>
+</li>
+<li><p>高速缓存：高速缓存的容量大于或者远大于寄存器，而比主存储器要小不少，但是速度快于主存储器，它与寄存器的存在主要是缓和CPU指令执行的速度与访问内存的速度这一矛盾。根据程序执行的局部性原理，将主存中一些经常访问的程序或数据放在高速缓存中，减少访问主存储器的次数，可大幅度提高程序执行的速度。在现代的计算机系统中，一般还分为多级高速缓存，如L1、L2、L3 Cache等。</p>
+</li>
+<li><p>主存储器：主要来保存进程运行时的程序和数据信息，它是一般意义上的内存。CPU控制部件只能从主存中获取程序和数据，与外部设备的交互也必须通过内存的地址空间来完成。</p>
+</li>
+<li><p>磁盘缓存：由于目前磁盘的I/O速度远低于对主存的访问速度，因此将频繁使用的一部分磁盘数据和信息，暂时存放在磁盘缓存中，可减少访问磁盘的次数，从而提高系统的I/O性能。磁盘缓存本身并不是一种实际的存储介质，它只是利用主存中的存储空间，来充当中间人的角色，可以实现成组提交等。</p>
+</li>
+</ol>
+<h2 id="存储器的管理"><a href="#存储器的管理" class="headerlink" title="存储器的管理"></a>存储器的管理</h2><p>操作系统的存储管理，负责对可执行存储器的分配、回收以及提供在存储层次间数据移动的管理机制。</p>
+<h2 id="内存分配方式"><a href="#内存分配方式" class="headerlink" title="内存分配方式"></a>内存分配方式</h2><p>程序执行时需要从外存上被加载到内存才能被OS调度执行，对于内存的分配方式不同，对OS的性能也会产生很大的影响。</p>
+<h3 id="单一连续分配"><a href="#单一连续分配" class="headerlink" title="单一连续分配"></a>单一连续分配</h3><p>这是最简单的一种存储管理方式，但只能用于单用户、单任务的操作系统中。在这种分配方式中，可把内存分为系统区(Kenel Space)和用户区(User Space)，系统区仅提供给OS使用，通常放在内存低地址部分；用户区是指系统区以外的全部内存空间，提供给用户使用。</p>
+<h3 id="固定分区分配"><a href="#固定分区分配" class="headerlink" title="固定分区分配"></a>固定分区分配</h3><p>固定分区式分配是最简单的一种可以运行多道程序的存储管理方式。它是将内存用户空间划分为若干固定大小的区域，每个分区中只装入一道作业，从而实现用户空间的多道作业并发运行。</p>
+<ol>
+<li>划分分区的方法：分区大小相等，即使所有的内存分区大小相等，其缺点是缺乏灵活性。大了空间浪费，小了程序运行不了；分区大小不等，为了克服分区大小相等而缺乏灵活性这个缺点，可把内存划分成含有多个较小分区，适量中等分区以及少量大分区，从而根据程序的大小为之分配适当的分区。</li>
+<li>内存分配：为了便于分配，可以将分区大小进行排队，并为之建立一张分区使用表，其中各表项包括每个分区的起始地址、大小及状态（是否分配）。</li>
+</ol>
+<p><img src="/images/2017-06/mm_2.png" alt=""></p>
+<h3 id="动态分区分配"><a href="#动态分区分配" class="headerlink" title="动态分区分配"></a>动态分区分配</h3><p>动态分区分配是根据进程的实际需要，动态地为之分配内存空间。在实现可变分区分配时，将涉及到分区分配中所用的数据结构、分区分配算法和分区的分配与回收操作这样三个问题。</p>
+<h4 id="分区分配中的数据结构"><a href="#分区分配中的数据结构" class="headerlink" title="分区分配中的数据结构"></a>分区分配中的数据结构</h4><p>为了实现动态分区分配，系统中必须配置相应的数据结构，用来描述空闲分区和已分配分区的情况，为分配提供依据。常用的数据结构有以下两种形式:</p>
+<ol>
+<li>空闲分区表。在系统中设置一张空闲分区表，用于记录每个空闲分区的情况。每个空闲分区占一个表目，表目中包括分区序号、分区始址及分区的大小等数据项。</li>
+<li>空闲分区链。为了实现对空闲分区的分配和链接，在每个分区的起始部分，设置一些用于控制分区分配的信息，以及用于链接各分区所用的前向指针;在分区尾部则设置一后向指针，通 过前、后向链接指针，可将所有的空闲分区链接成一个双向链。</li>
+</ol>
+<h4 id="分区分配算法"><a href="#分区分配算法" class="headerlink" title="分区分配算法"></a>分区分配算法</h4><p>为把一个新作业装入内存，须按照一定的分配算法，从空闲分区表或空闲分区链中选出一分区分配给该作业，或按照起始地址大小排序，或按照分区大小排序。各种分配算法都有优缺点：</p>
+<ol>
+<li>首次适应算法(first fit)：按照起始地址大小升序排序，从链首开始搜索，直到找到大小合适的分区，并按需分配</li>
+<li>循环首次适应算法(next fit)：同首次适应算法，只是不再从链首开始搜索，而是从上一次分配的起始地址开始搜索</li>
+<li>最佳适应算法(best fit)：类似首次适应算法，只是按照分区大小升序排序</li>
+<li>最坏适应算法(worst fit)：与最佳适应算法相反</li>
+<li>快速适应算法(quick fit)：是将空闲分区根据其容量大小进行分类，对于每一类具有相同容量的所有空闲分区，单独设立一个空闲分区链表，这样，系统中存在多个空闲分区链表，同时在内存中设立一张管理索引表，该表的每一个表项对应了一种空闲分区类型，并记录了该类型空闲分区链表表头的指针。</li>
+</ol>
+<p>首次适应算法、循环首次适应算法、最佳适应、最坏适应算法算法一起，称为顺序搜索法。快速适应算法称为分类搜索算法。</p>
+<h4 id="分区分配操作"><a href="#分区分配操作" class="headerlink" title="分区分配操作"></a>分区分配操作</h4><p>在动态分区存储管理方式中，主要的操作是分配内存和回收内存。</p>
+<h5 id="分配内存"><a href="#分配内存" class="headerlink" title="分配内存"></a>分配内存</h5><p>系统应利用某种分配算法，从空闲分区链(表)中找到所需大小的分区。设请求的分区大小为 u.size，表中每个空闲分区的大小可表示为 m.size。若 m.size-u.size≤size(size 是事先规定的不再切割的剩余分区的大小)，说明多余部分太小，可不再切割，将整个分区分配给请 求者;否则(即多余部分超过 size)，从该分区中按请求的大小划分出一块内存空间分配出去，余下的部分仍留在空闲分区链(表)中。然后，将分配区的首址返回给调用者。如图所示：</p>
+<p><img src="/images/2017-06/io_memory_2.png" alt=""></p>
+<h5 id="回收内存"><a href="#回收内存" class="headerlink" title="回收内存"></a>回收内存</h5><p>当进程运行完毕释放内存时，系统根据回收区的首址，从空闲区链(表)中找到相应的插 入点，此时可能出现以下四种情况之一:</p>
+<ol>
+<li>回收区与插入点的前一个空闲分区 F1 相邻接，见图 4-8(a)。此时应将回收区与插入 点的前一分区合并，不必为回收分区分配新表项，而只需修改其前一分区 F1 的大小。</li>
+<li>回收分区与插入点的后一空闲分区 F2 相邻接，见图 4-8(b)。此时也可将两分区合并， 形成新的空闲分区，但用回收区的首址作为新空闲区的首址，大小为两者之和。</li>
+<li>回收区同时与插入点的前、后两个分区邻接，见图 4-8(c)。此时将三个分区合并， 使用 F1 的表项和 F1 的首址，取消 F2 的表项，大小为三者之和。</li>
+<li>回收区既不与 F1 邻接，又不与 F2 邻接。这时应为回收区单独建立一新表项，填写 回收区的首址和大小，并根据其首址插入到空闲链中的适当位置。</li>
+</ol>
+<p><img src="/images/2017-06/io_memory_3.png" alt=""></p>
+<h3 id="伙伴系统（Linux在大内存分配时，采用了此算法）"><a href="#伙伴系统（Linux在大内存分配时，采用了此算法）" class="headerlink" title="伙伴系统（Linux在大内存分配时，采用了此算法）"></a>伙伴系统（Linux在大内存分配时，采用了此算法）</h3><p>固定分区和动态分区方式都有不足之处。固定分区方式限制了活动进程的数目，当进程大小与空闲分区大小不匹配时，内存空间利用率很低。动态分区方式算法复杂，回收空闲分区时需要进行分区合并等，系统开销较大。伙伴系统方式是对以上两种内存方式的一种折衷方案。伙伴系统规定，无论已分配分区或空闲分区，其大小均为 2 的 k 次幂，k 为整数， l≤k≤m，其中:2^1 表示分配的最小分区的大小，2^m 表示分配的最大分区的大小，通常 2^m 是整个可分配内存的大小。假设系统的可利用空间容量为 2^m 个字，则系统开始运行时，整个内存区是一个大小为 2^m 的空闲分区。在系统运行过程中，由于不断的划分，可能会形成若干个不连续的空闲分区， 将这些空闲分区根据分区的大小进行分类，对于每一类具有相同大小的所有空闲分区，单独设立一个空闲分区双向链表。这样，不同大小的空闲分区形成了 k(0≤k≤m)个空闲分区链表。当需要为进程分配一个长度为 n 的存储空间时，首先计算一个 i 值，使 2^(i-1)&lt;n≤2^i，然 后在空闲分区大小为 2^i 的空闲分区链表中查找。若找到，即把该空闲分区分配给进程。否 则，表明长度为 2^i 的空闲分区已经耗尽，则在分区大小为 2^(i+1) 的空闲分区链表中寻找。若 存在 2^(i+1) 的一个空闲分区，则把该空闲分区分为相等的两个分区，这两个分区称为一对伙伴，其中的一个分区用于分配，而把另一个加入分区大小为 2^i 的空闲分区链表中。若大小 为 2^(i+1) 的空闲分区也不存在，则需要查找大小为 2^(i+2) 的空闲分区，若找到则对其进行两次分 割:第一次，将其分割为大小为 2^(i+1) 的两个分区，一个用于分配，一个加入到大小为 2^(i+1) 的空闲分区链表中;第二次，将第一次用于分配的空闲区分割为 2^i 的两个分区，一个用于分配，一个加入到大小为 2^i 的空闲分区链表中。若仍然找不到，则继续查找大小为 2^(i+3) 的 空闲分区，以此类推。由此可见，在最坏的情况下，可能需要对 2^k 的空闲分区进行 k 次分割才能得到所需分区。与一次分配可能要进行多次分割一样，一次回收也可能要进行多次合并，如回收大小为 2^i 的空闲分区时，若事先已存在 2^i 的空闲分区时，则应将其与伙伴分区合并为大小为 2^(i+1) 的空闲分区，若事先已存在 2^(i+1) 的空闲分区时，又应继续与其伙伴分区合并为大小为 2^(i+2) 的空闲分区，依此类推。在伙伴系统中，其分配和回收的时间性能取决于查找空闲分区的位置和分割、合并空闲分区所花费的时间。与前面所述的多种方法相比较，由于该算法在回收空闲分区时，需要对空闲分区进行合并，所以其时间性能比前面所述的分类搜索算法差，但比顺序搜索算法好，而其空间性能则远优于前面所述的分类搜索法，比顺序搜索法略差。</p>
+<h3 id="可重定位的分区分配"><a href="#可重定位的分区分配" class="headerlink" title="可重定位的分区分配"></a>可重定位的分区分配</h3><p>简单的说就是先分配，不足时，如果内存碎片的总和大于需要的空间，就再通过移动已经分配了内存空间使其紧凑，从而腾出足够的空间来分配。因此她需要地址转换器等硬件构件的支持。<br><img src="/images/2017-06/io_memory_4.png" alt=""> <img src="/images/2017-06/io_memory_5.png" alt=""> <img src="/images/2017-06/io_memory_6.png" alt=""></p>
+<h3 id="其他分配方式"><a href="#其他分配方式" class="headerlink" title="其他分配方式"></a>其他分配方式</h3><p>哈希分配，对换（swapping)。对换主要是在内存空间不足时，将暂时没有执行的程序或者数据对换至swap分区，从而能加载新的程序与数据。可以含有进程对换，页对换，或者段对换等，一般程序执行过程中尽量避免对换的发生。</p>
+<h3 id="离散的分配"><a href="#离散的分配" class="headerlink" title="离散的分配"></a>离散的分配</h3><p>如果允许将一个进程直接分散地装入到许多不相邻接的分区中，则无须再进行“紧凑”。基于这一思想而产生了离散分配方式。如果离散分配的基本单位是页，则称为分页存储管理方式;如果离散分配的基本单位是段，则称为分段存储管理方式。</p>
+<h4 id="基本分页存储管理方式"><a href="#基本分页存储管理方式" class="headerlink" title="基本分页存储管理方式"></a>基本分页存储管理方式</h4><p>在分页存储管理方式中，如果不具备页面对换功能，则称为基本的分页存储管理方式， 或称为纯分页存储管理方式</p>
+<ol>
+<li>页面和物理块：分页存储管理是将一个进程的逻辑地址空间分成若干个大小相等的片，称为页面或页，并为各页加以编号，从 0 开始。相应地，也把内存空间分成与页面相同大小的若干个存储块，称为(物理)块或页框(frame)，也同样为它们加以编号，如 0#块等。在为进程分配内存时，以块为单位将进程中的若干个页分别装入到多个可以不相邻接的物理块中。由于进程的最后一页经常装不满一块而形成了不可利用的碎片，称之为 “页内碎片”。</li>
+<li>页面大小：在分页系统中的页面其大小应适中。过大可能会导致页表过长，占用更多的空间，也会使对换效率下降，而过大又会增加内存页内碎片等。一般是512B到8KB，且为2的幂大小。</li>
+<li>页表：系统为每个进程建立了一张页面映像表，简称页表。页表中包含了该进程所有的页面以及页面与物理块号的对应关系。</li>
+<li>地址变换机构：能将用户地址空间中的逻辑地址变换为内存空间中的物理地址。</li>
+</ol>
+<p>在基于分页的存储管理方式中，随着页表大小的增大，又可以进行多级页表的分页方式。</p>
+<h4 id="基本分段存储管理方式"><a href="#基本分段存储管理方式" class="headerlink" title="基本分段存储管理方式"></a>基本分段存储管理方式</h4><p>在分段存储管理方式中，如果不具备段对换功能，则称为基本的分段存储管理方式， 或称为纯分段存储管理方式</p>
+<ol>
+<li>分段：作业的地址空间被划分为若干个段，每个段定义了一组逻辑信息，对应一段连续的地址空间。例如，有主程序段MAIN、子程序段X、数据段D及栈段S等。</li>
+<li>段大小：逻辑地址由段号和段内地址构成，在32位的字宽中，最多允许64K个段，每个段的大小最大为64KB。</li>
+<li>段表：系统为每个进程建立一张段映射表，简称 “段表”。段表中包含了段号，以及对应物理分区空间地址。</li>
+<li>地址变换机构：能将用户地址空间中的逻辑地址变换为内存空间中的物理地址。</li>
+</ol>
+<h4 id="段页式存储管理"><a href="#段页式存储管理" class="headerlink" title="段页式存储管理"></a>段页式存储管理</h4><p>段页式系统的基本原理，是分段和分页原理的结合，即先将用户程序分成若干个段， 再把每个段分成若干个页，并为每一个段赋予一个段名。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/IO/" rel="tag">#IO</a>
+          
+            <a href="/tags/Netty/" rel="tag">#Netty</a>
+          
+            <a href="/tags/Network/" rel="tag">#Network</a>
+          
+            <a href="/tags/computer/" rel="tag">#computer</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017-06-11-io-model/" rel="next" title="I/O 模型(同步/异步与阻塞/非阻塞区别)">
+                <i class="fa fa-chevron-left"></i> I/O 模型(同步/异步与阻塞/非阻塞区别)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017-06-27-paxos/" rel="prev" title="深入理解Paxos算法协议">
+                深入理解Paxos算法协议 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Sevenvoid">
+          <p class="site-author-name" itemprop="name">Sevenvoid</p>
+          <p class="site-description motion-element" itemprop="description">一只迷茫的猫</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多级存储器结构"><span class="nav-number">2.</span> <span class="nav-text">多级存储器结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#存储器的管理"><span class="nav-number">3.</span> <span class="nav-text">存储器的管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存分配方式"><span class="nav-number">4.</span> <span class="nav-text">内存分配方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单一连续分配"><span class="nav-number">4.1.</span> <span class="nav-text">单一连续分配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#固定分区分配"><span class="nav-number">4.2.</span> <span class="nav-text">固定分区分配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态分区分配"><span class="nav-number">4.3.</span> <span class="nav-text">动态分区分配</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#分区分配中的数据结构"><span class="nav-number">4.3.1.</span> <span class="nav-text">分区分配中的数据结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分区分配算法"><span class="nav-number">4.3.2.</span> <span class="nav-text">分区分配算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分区分配操作"><span class="nav-number">4.3.3.</span> <span class="nav-text">分区分配操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#分配内存"><span class="nav-number">4.3.3.1.</span> <span class="nav-text">分配内存</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#回收内存"><span class="nav-number">4.3.3.2.</span> <span class="nav-text">回收内存</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#伙伴系统（Linux在大内存分配时，采用了此算法）"><span class="nav-number">4.4.</span> <span class="nav-text">伙伴系统（Linux在大内存分配时，采用了此算法）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可重定位的分区分配"><span class="nav-number">4.5.</span> <span class="nav-text">可重定位的分区分配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他分配方式"><span class="nav-number">4.6.</span> <span class="nav-text">其他分配方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#离散的分配"><span class="nav-number">4.7.</span> <span class="nav-text">离散的分配</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本分页存储管理方式"><span class="nav-number">4.7.1.</span> <span class="nav-text">基本分页存储管理方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基本分段存储管理方式"><span class="nav-number">4.7.2.</span> <span class="nav-text">基本分段存储管理方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段页式存储管理"><span class="nav-number">4.7.3.</span> <span class="nav-text">段页式存储管理</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sevenvoid</span>
+</div>
+
+<div class="powered-by">
+  版权归 Sevenvoid 所有
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'sevenvoid';
+      var disqus_identifier = '2017-06-17-io-memory/';
+      var disqus_title = "存储器管理";
+      var disqus_url = 'http://sevenvoid.com/2017-06-17-io-memory/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
